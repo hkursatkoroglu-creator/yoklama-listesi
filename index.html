@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f9fafb">
+    <title>Sınıf Yoklama Listesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Özelleştirilmiş animasyonlar ve ince ayarlar için ekstra CSS */
+        
+        /* Tüm Kaydırma Çubuklarını (Scrollbar) Tamamen Gizle */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            -ms-overflow-style: none; /* IE ve Edge için */
+            scrollbar-width: none; /* Firefox için */
+        }
+        /* html2canvas'in yazıları kesmesini önlemek için */
+        .student-name-container {
+            padding-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .status-btn {
+            transition: all 0.3s ease;
+        }
+        .status-btn.geldi {
+            background-color: #22c55e; /* Tailwind green-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.5);
+        }
+        .status-btn.gelmedi {
+            background-color: #ef4444; /* Tailwind red-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.5);
+        }
+        .status-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-200 h-[100dvh] font-sans text-gray-800 overflow-hidden flex flex-col items-center justify-center">
+
+    <div id="capture-area" class="w-full max-w-sm h-[100dvh] bg-[#f4f6f8] flex flex-col relative sm:shadow-2xl sm:h-screen">
+        
+        <header class="pt-2 pb-1 text-center flex-shrink-0 z-10">
+            <h1 class="text-base font-extrabold text-gray-900 leading-tight">Yoklama Listesi</h1>
+            <p class="text-[10px] text-gray-500 font-medium" id="current-date"></p>
+        </header>
+
+        <div class="px-2 pb-1 flex-shrink-0 flex flex-col gap-1.5 z-10 bg-[#f4f6f8]">
+            <!-- Ders ve Grup Seçimi (Tek Satır) -->
+            <div class="flex gap-1">
+                <select id="dyk-course" class="w-1/2 text-[11px] font-bold bg-transparent border-b border-gray-300 text-gray-800 py-1 px-1 focus:outline-none focus:border-blue-500 text-center appearance-none cursor-pointer">
+                    <option value="" disabled selected>-- Ders Seç --</option>
+                    <option value="Türkçe">Türkçe</option>
+                    <option value="Matematik">Matematik</option>
+                    <option value="Fen Bilimleri">Fen Bilimleri</option>
+                    <option value="T.C. İnkılap Tarihi">İnkılap Tarihi</option>
+                    <option value="İngilizce">İngilizce</option>
+                    <option value="Din Kültürü">Din Kültürü</option>
+                </select>
+                
+                <select id="group-select" class="w-1/2 text-[11px] font-bold bg-transparent border-b border-gray-300 text-gray-800 py-1 px-1 focus:outline-none focus:border-blue-500 text-center appearance-none cursor-pointer">
+                    <option value="A Grubu" selected>A Grubu</option>
+                    <option value="B Grubu">B Grubu</option>
+                    <option value="Hafta Sonu">Hafta Sonu</option>
+                </select>
+            </div>
+
+            <!-- Sayaçlar (İnceltilmiş) -->
+            <div class="border border-gray-200 p-1 flex justify-between items-center rounded h-8">
+                <div class="text-center w-1/3 flex flex-col justify-center">
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-none">Gelen</p>
+                    <p id="count-geldi" class="text-sm font-black text-green-500 leading-none">0</p>
+                </div>
+                <div class="w-px h-5 bg-gray-200"></div>
+                <div class="text-center w-1/3 flex flex-col justify-center">
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-none">Gelmeyen</p>
+                    <p id="count-gelmedi" class="text-sm font-black text-red-500 leading-none">0</p>
+                </div>
+                <div class="w-px h-5 bg-gray-200"></div>
+                <div class="text-center w-1/3 flex justify-center items-center">
+                    <button id="reset-btn" class="text-[9px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold py-1 px-2 rounded transition duration-200">
+                        Sıfırla
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Öğrenci Listesi (Dikey olarak çok sıkıştırıldı) -->
+        <div id="list-container" class="flex-1 min-h-0 relative overflow-y-auto px-2 pb-1 w-full bg-white border-t border-gray-100">
+            <ul id="student-list" class="flex flex-col w-full h-full">
+                <!-- Öğrenciler buraya eklenecek -->
+            </ul>
+        </div>
+        
+        <!-- Tamamla Butonu (Alanı daraltıldı) -->
+        <div id="action-footer" class="px-2 py-1.5 flex-shrink-0 z-10 pb-2">
+            <button onclick="showSummaryDialog()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 rounded-lg shadow-sm transition-all duration-300 text-[13px] flex items-center justify-center">
+                Tamamla
+            </button>
+        </div>
+    </div>
+
+    <div id="summary-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="modal-content">
+            <h3 class="text-xl font-bold text-gray-900 mb-1 text-center">Yoklama Özeti</h3>
+            
+            <!-- Seçilen Dersin Modalda Gösterilmesi -->
+            <p id="modal-course-name" class="text-sm font-semibold text-blue-600 text-center mb-4"></p>
+            
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center bg-green-50 p-3 rounded-lg">
+                    <span class="text-green-800 font-medium">Toplam Gelen:</span>
+                    <span id="modal-geldi-count" class="text-xl font-bold text-green-600"></span>
+                </div>
+                <div class="flex justify-between items-center bg-red-50 p-3 rounded-lg">
+                    <span class="text-red-800 font-medium">Toplam Gelmeyen:</span>
+                    <span id="modal-gelmedi-count" class="text-xl font-bold text-red-600"></span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 mb-6 text-center">Bu işlem sadece bir simülasyondur, veriler kaydedilmez.</p>
+            
+            <div class="flex flex-col gap-2">
+                <button onclick="shareViaWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                    </svg>
+                    WhatsApp'a Gönder
+                </button>
+                <button onclick="closeSummaryDialog()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-200">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const classGroups = {
+            "A Grubu": [
+                "EZGİ SU DİLLİ", "HATİCE MİRA BAŞ", "YAĞMUR DURU BAŞ", "KAAN ÇİÇEK",
+                "EFE MUSA GÜRDAL", "SEMANUR BAYRAKTAR", "MİRAÇ DİNÇ", "ABDULKERİM BADUR",
+                "HİLAL ALYA BİLGİN", "SİNEM NAZ KALYONCU", "OSMAN EFE AYDIN", "FEYZA CİHAN",
+                "ZEHRA BETÜL ÇOLAKOĞLU", "ZEYNEP KAYA", "ELİF SU BİLGİN", "GÜLSÜM YILMAZ",
+                "YİĞİT EFE FURUNCU"
+            ],
+            "B Grubu": [
+                "Abdulkadir BİLGİN", "Melike BAYRAM", "Buğlem Su FURUNCU", "Gökay BOZBAŞ",
+                "Ömer Faruk TEKNECİ", "Ethem A. TURUM", "Alperen BÜLBÜL", "Musa BAYRAM",
+                "Ali Eymen KOYUNOĞLU", "Tuğçe CİVELEK", "Hasret BÜLBÜL", "Buse A. ERKAN",
+                "Egemen ŞİRİN", "Beyza Nur BİLGİN", "Rukiye Naz MISIR", "Ömer Asaf ÇOLAKOĞLU"
+            ],
+            "Hafta Sonu": [
+                "EZGİ SU DİLLİ", "HATİCE MİRA BAŞ", "KAAN ÇİÇEK", "MİRAÇ DİNÇ", 
+                "FEYZA CİHAN", "ZEYNEP KAYA", "GÜLSÜM YILMAZ", "YİĞİT EFE FURUNCU",
+                "Melike BAYRAM", "Gökay BOZBAŞ", "Ömer Faruk TEKNECİ", "Alperen BÜLBÜL", 
+                "Ali Eymen KOYUNOĞLU", "Tuğçe CİVELEK", "Egemen ŞİRİN", "Ömer Asaf ÇOLAKOĞLU"
+            ]
+        };
+
+        let currentGroup = "A Grubu";
+        let attendanceState = {}; // EKSİK OLAN DEĞİŞKEN EKLENDİ
+
+        // Sayfa yüklendiğinde çalışacak ana fonksiyon
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAttendance();
+            displayDate();
+            renderList();
+            
+            // Sıfırla butonuna tıklama olayı
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                initializeAttendance();
+                renderList();
+            });
+
+            // Grup seçim menüsü değiştiğinde
+            document.getElementById('group-select').addEventListener('change', (e) => {
+                currentGroup = e.target.value;
+                renderList();
+                updateCounters();
+            });
+        });
+
+        function displayDate() {
+            const dateElement = document.getElementById('current-date');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            dateElement.textContent = today.toLocaleDateString('tr-TR', options);
+        }
+
+        // Başlangıçta herkesi "Geldi" (true) olarak işaretle
+        function initializeAttendance() {
+            for (const group in classGroups) {
+                classGroups[group].forEach(student => {
+                    attendanceState[student] = true;
+                });
+            }
+            updateCounters();
+        }
+
+        function renderList() {
+            const listElement = document.getElementById('student-list');
+            listElement.innerHTML = ''; // Listeyi temizle
+
+            const students = classGroups[currentGroup];
+            students.forEach((student, index) => {
+                const li = document.createElement('li');
+                // Liste elemanlarının dikey boşlukları (py) neredeyse sıfırlandı, flex-1 kaldırılarak boyutlarını içindeki elemanların belirlemesi sağlandı
+                li.className = "flex items-center justify-between border-b border-gray-100 w-full py-0.5 min-h-[22px]"; 
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = "flex items-center gap-1 overflow-hidden w-full student-name-container"; // html2canvas kesilme önlemi sınıfı eklendi
+                
+                const numberSpan = document.createElement('span');
+                numberSpan.className = "text-gray-400 text-[9px] font-bold w-4 text-left select-none flex-shrink-0";
+                const nameSpan = document.createElement('span');
+                nameSpan.className = "font-bold text-gray-700 text-sm whitespace-nowrap overflow-hidden text-ellipsis flex-1";
+                nameSpan.textContent = student;
+
+                infoDiv.appendChild(numberSpan);
+                infoDiv.appendChild(nameSpan);
+
+                const buttonDiv = document.createElement('div');
+                
+                const statusBtn = document.createElement('button');
+                const isPresent = attendanceState[student];
+                
+                // Butonlar daha da küçültüldü
+                statusBtn.className = `status-btn px-1 py-0.5 rounded text-[9px] font-bold w-[45px] text-center focus:outline-none flex-shrink-0 ml-1 ${isPresent ? 'geldi' : 'gelmedi'}`;
+                statusBtn.textContent = isPresent ? 'Geldi' : 'Gelmedi';
+                
+                statusBtn.onclick = () => toggleStatus(student, statusBtn);
+
+                buttonDiv.appendChild(statusBtn);
+
+                li.appendChild(infoDiv);
+                li.appendChild(buttonDiv);
+                listElement.appendChild(li);
+            });
+        }
+
+        function toggleStatus(studentName, buttonElement) {
+            // Durumu tersine çevir
+            attendanceState[studentName] = !attendanceState[studentName];
+            const isNowPresent = attendanceState[studentName];
+
+            // Butonun görünümünü güncelle
+            if (isNowPresent) {
+                buttonElement.classList.remove('gelmedi', 'focus:ring-red-400');
+                buttonElement.classList.add('geldi', 'focus:ring-green-400');
+                buttonElement.textContent = 'Geldi';
+            } else {
+                buttonElement.classList.remove('geldi', 'focus:ring-green-400');
+                buttonElement.classList.add('gelmedi', 'focus:ring-red-400');
+                buttonElement.textContent = 'Gelmedi'; 
+            }
+
+            // Sayaçları güncelle
+            updateCounters();
+        }
+
+        function updateCounters() {
+            let countGeldi = 0;
+            let countGelmedi = 0;
+
+            // Sadece aktif gruptaki (currentGroup) öğrencilerin durumunu kontrol et
+            classGroups[currentGroup].forEach(student => {
+                if (attendanceState[student]) {
+                    countGeldi++;
+                } else {
+                    countGelmedi++;
+                }
+            });
+
+            // Ekranda sayıları animasyonlu bir şekilde güncelleyebilirsiniz, şimdilik direkt atama yapıyoruz
+            document.getElementById('count-geldi').textContent = countGeldi;
+            document.getElementById('count-gelmedi').textContent = countGelmedi;
+        }
+
+        function showSummaryDialog() {
+            const modal = document.getElementById('summary-modal');
+            const modalContent = document.getElementById('modal-content');
+            const courseSelect = document.getElementById('dyk-course');
+            const courseNameElement = document.getElementById('modal-course-name');
+            
+            // Seçilen dersi modal'a yazdır
+            if (courseSelect.value) {
+                courseNameElement.textContent = "Ders: " + courseSelect.options[courseSelect.selectedIndex].text;
+            } else {
+                courseNameElement.textContent = "Lütfen bir ders seçiniz!";
+                courseNameElement.classList.replace('text-blue-600', 'text-red-500');
+            }
+            
+            // Mevcut sayaç değerlerini modal içine al
+            document.getElementById('modal-geldi-count').textContent = document.getElementById('count-geldi').textContent;
+            document.getElementById('modal-gelmedi-count').textContent = document.getElementById('count-gelmedi').textContent;
+
+            // Modal'ı göster ve animasyonu tetikle
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Küçük bir gecikme ile animasyon sınıflarını değiştir
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeSummaryDialog() {
+            const modal = document.getElementById('summary-modal');
+            const modalContent = document.getElementById('modal-content');
+
+            // Kapanış animasyonu
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+
+            // Animasyon bitiminde gizle
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300); 
+        }
+
+        async function shareViaWhatsApp() {
+            const modal = document.getElementById('summary-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            const captureArea = document.getElementById('capture-area'); 
+            const listContainer = document.getElementById('list-container');
+            
+            // Tam ekran görüntüsü için listeyi ve kapsayıcıyı geçici olarak aç
+            const originalHeight = captureArea.style.height;
+            const originalOverflow = listContainer.style.overflow;
+            
+            captureArea.classList.remove('h-full', 'sm:h-[95vh]', 'overflow-hidden');
+            captureArea.style.height = 'auto';
+            listContainer.classList.remove('overflow-y-auto', 'flex-1', 'min-h-0');
+            listContainer.style.overflow = 'visible';
+
+            // Ekranın tam açılması için kısa bir bekleme süresi (render süresi)
+            await new Promise(resolve => setTimeout(resolve, 150));
+            
+            const courseSelect = document.getElementById('dyk-course');
+            const courseName = courseSelect.options[courseSelect.selectedIndex]?.text || 'Belirtilmedi';
+            const dateStr = document.getElementById('current-date').textContent;
+            
+            let absentStudents = [];
+            classGroups[currentGroup].forEach(student => {
+                if (!attendanceState[student]) {
+                    absentStudents.push(student);
+                }
+            });
+            
+            let textSummary = `*Yoklama Bildirimi*\n🗓 ${dateStr}\n📚 Ders: ${courseName}\n👥 Grup: ${currentGroup}\n\n✅ Gelen: ${document.getElementById('count-geldi').textContent}\n❌ Gelmeyen: ${document.getElementById('count-gelmedi').textContent}`;
+            
+            if (absentStudents.length > 0) {
+                textSummary += `\n\n*Gelmeyen Öğrenciler:*\n` + absentStudents.map(s => `- ${s}`).join('\n');
+            }
+
+            try {
+                const canvas = await html2canvas(captureArea, {
+                    scale: window.devicePixelRatio || 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#f4f6f8',
+                    windowWidth: captureArea.scrollWidth,
+                    windowHeight: captureArea.scrollHeight,
+                });
+                
+                // DOM'u tekrar eski haline (mobil formata) getir
+                captureArea.style.height = originalHeight;
+                captureArea.classList.add('h-full', 'sm:h-[95vh]', 'overflow-hidden');
+                listContainer.style.overflow = originalOverflow;
+                listContainer.classList.add('overflow-y-auto', 'flex-1', 'min-h-0');
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], "yoklama.png", { type: "image/png" });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Yoklama Listesi',
+                                text: textSummary
+                            });
+                        } catch (error) {
+                            console.log("Paylaşım iptal edildi.");
+                        }
+                    } else {
+                        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(textSummary)}`;
+                        window.open(whatsappUrl, '_blank');
+                    }
+                    
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }, 'image/png');
+                
+            } catch (err) {
+                // Hata olursa tasarımı bozmamak için eski haline getir
+                captureArea.style.height = originalHeight;
+                captureArea.classList.add('h-full', 'sm:h-[95vh]', 'overflow-hidden');
+                listContainer.style.overflow = originalOverflow;
+                listContainer.classList.add('overflow-y-auto', 'flex-1', 'min-h-0');
+                
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(textSummary)}`;
+                window.open(whatsappUrl, '_blank');
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+    </script>
+</body>
+</html>
