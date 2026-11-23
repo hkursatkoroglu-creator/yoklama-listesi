@@ -16,7 +16,7 @@
         ::-webkit-scrollbar {
             display: none;
         }
-        * {
+- {
             -ms-overflow-style: none; /* IE ve Edge için */
             scrollbar-width: none; /* Firefox için */
         }
@@ -145,28 +145,28 @@
     <script>
         const classGroups = {
             "A Grubu": [
-                "EZGİ SU DİLLİ", "HATİCE MİRA BAŞ", "YAĞMUR DURU BAŞ", "KAAN ÇİÇEK",
-                "EFE MUSA GÜRDAL", "SEMANUR BAYRAKTAR", "MİRAÇ DİNÇ", "ABDULKERİM BADUR",
-                "HİLAL ALYA BİLGİN", "SİNEM NAZ KALYONCU", "OSMAN EFE AYDIN",,
-                "ZEHRA BETÜL ÇOLAKOĞLU", "ZEYNEP KAYA", , "Gökay BOZBAŞ",
-                "YİĞİT EFE FURUNCU", "Abdulkadir BİLGİN"
+                "Ezgi Su DİLLİ", "Hatice Mira BAŞ", "Yağmur Duru BAŞ", "Kaan ÇİÇEK",
+                "Efe Musa GÜRDAL", "Semanur BAYRAKTAR", "Miraç DİNÇ", "Abdulkerim BADUR",
+                "Hilal Alya BİLGİN", "Sinem Naz KALYONCU", "Osman Efe AYDIN",
+                "Zehra Betül ÇOLAKOĞLU", "Zeynep KAYA", "Gökay BOZBAŞ",
+                "Yiğit Efe FURUNCU", "Abdulkadir BİLGİN"
             ],
             "B Grubu": [
-                 "FEYZA CİHAN", "GÜLSÜM YILMAZ", "ELİF SU BİLGİN",  "Melike BAYRAM", "Buğlem Su FURUNCU",
-                "Ömer Faruk TEKNECİ", "Ethem A. TURUM", "Alperen BÜLBÜL", "Musa BAYRAM",
+                "Feyza CİHAN", "Gülsüm YILMAZ", "Elif Su BİLGİN", "Melike BAYRAM", "Buğlem Su FURUNCU",
+                "Ömer Faruk TEKNECİ", "Alperen BÜLBÜL", "Musa BAYRAM",
                 "Ali Eymen KOYUNOĞLU", "Tuğçe CİVELEK", "Hasret BÜLBÜL", "Buse A. ERKAN",
                 "Egemen ŞİRİN", "Beyza Nur BİLGİN", "Rukiye Naz MISIR", "Ömer Asaf ÇOLAKOĞLU"
             ],
             "Hafta Sonu": [
-                "EGEMEN ŞİRİN", "ABDULKERİM BADUR", "BEYZA NUR BİLGİN", "BUSE AZELYA ERKAN",
-                "EFE MUSA GÜRDAL", "ELİF SU BİLGİN", "ETHEM AHMET TURUM", "GÜLSÜM YILMAZ",
-                "HİLAL ALYA BİLGİN", "MİRAÇ DİNÇ", "ÖMER ASAF ÇOLAKOĞLU", "ÖMER FARUK TEKNECİ",
-                "SEMANUR BAYRAKTAR", "ZEYNEP KAYA", "GÖKAY BOZBAŞ", "KAAN ÇİÇEK",
-                "FEYZA CİHAN", "MELİKE BAYRAM", "EZGİ SU DİLLİ", "OSMAN EFE AYDIN",
-                "ABDULKADİR BİLGİN", "ALİ EYMEN KOYUNOĞLU", "ALPEREN BÜLBÜL", "BUĞLEM SU FURUNCU",
-                "HASRET BÜLBÜL", "HATİCE MİRA BAŞ", "MUSA BAYRAM", "RUKİYE NAZ MİSİR",
-                "SİNEM NAZ KALYONCU", "TUĞÇE CİVELEK", "YAĞMUR DURU BAŞ", "YİĞİT EFE FURUNCU",
-                "ZEHRA BETÜL ÇOLAKOĞLU"
+                "Egemen ŞİRİN", "Abdulkerim BADUR", "Beyza Nur BİLGİN", "Buse Azelya ERKAN",
+                "Efe Musa GÜRDAL", "Elif Su BİLGİN", "Gülsüm YILMAZ",
+                "Hilal Alya BİLGİN", "Miraç DİNÇ", "Ömer Asaf ÇOLAKOĞLU", "Ömer Faruk TEKNECİ",
+                "Semanur BAYRAKTAR", "Zeynep KAYA", "Gökay BOZBAŞ", "Kaan ÇİÇEK",
+                "Feyza CİHAN", "Melike BAYRAM", "Ezgi Su DİLLİ", "Osman Efe AYDIN",
+                "Abdulkadir BİLGİN", "Ali Eymen KOYUNOĞLU", "Alperen BÜLBÜL", "Buğlem Su FURUNCU",
+                "Hasret BÜLBÜL", "Hatice Mira BAŞ", "Musa BAYRAM", "Rukiye Naz MİSİR",
+                "Sinem Naz KALYONCU", "Tuğçe CİVELEK", "Yağmur Duru BAŞ", "Yiğit Efe FURUNCU",
+                "Zehra Betül ÇOLAKOĞLU"
             ]
         };
 
@@ -224,7 +224,8 @@
                 infoDiv.className = "flex items-center gap-1 overflow-hidden w-full student-name-container"; // html2canvas kesilme önlemi sınıfı eklendi
                 
                 const numberSpan = document.createElement('span');
-                numberSpan.className = "text-gray-400 text-[9px] font-bold w-4 text-left select-none flex-shrink-0";
+                numberSpan.className = "text-gray-400 text-[10px] font-bold w-5 text-left select-none flex-shrink-0";
+                numberSpan.textContent = `${index + 1}.`;
                 const nameSpan = document.createElement('span');
                 nameSpan.className = "font-bold text-gray-700 text-sm whitespace-nowrap overflow-hidden text-ellipsis flex-1";
                 nameSpan.textContent = student;
